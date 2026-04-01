@@ -1,0 +1,162 @@
+.delivery-list-page {
+  // We use this as the main wrapper class to scope our styles
+
+  &.page-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1rem;
+    position: relative;
+    min-height: 100vh;
+    padding-bottom: 6rem; 
+  }
+
+  .search-container {
+    position: relative;
+    margin-bottom: 1.5rem;
+    
+    .p-inputtext {
+      width: 100%;
+      padding-left: 2.5rem;
+      padding-right: 2.5rem;
+      border-radius: 12px;
+      background-color: var(--surface-ground);
+      border: none;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-color-secondary);
+    }
+
+    .filter-icon {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--primary-color);
+      cursor: pointer;
+    }
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    scrollbar-width: none;
+    
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .p-button {
+      border-radius: 20px;
+      padding: 0.5rem 1.25rem;
+      white-space: nowrap;
+      
+      &.p-button-outlined {
+        background-color: var(--surface-ground);
+        border-color: transparent;
+        color: var(--text-color);
+      }
+    }
+  }
+
+  .delivery-card {
+    display: flex;
+    align-items: center;
+    background: var(--surface-card);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+
+    .status-indicator {
+      position: absolute;
+      left: 0;
+      top: 1.5rem;
+      bottom: 1.5rem;
+      width: 4px;
+      border-radius: 0 4px 4px 0;
+
+      &.in-transit { background-color: #3b82f6; }
+      &.pending { background-color: #f59e0b; }
+      &.completed { background-color: #9ca3af; }
+      &.returned { background-color: #ef4444; }
+    }
+
+    .card-image {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      background-color: var(--surface-ground);
+      margin-left: 0.5rem;
+      margin-right: 1rem;
+    }
+
+    .card-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .tracking-number {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin: 0;
+      }
+
+      .customer-name {
+        color: var(--text-color);
+        margin: 0;
+        font-size: 0.95rem;
+      }
+
+      .site-location {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        color: var(--text-color-secondary);
+        font-size: 0.85rem;
+        margin: 0;
+      }
+    }
+
+    .chevron-icon {
+      color: var(--text-color-secondary);
+      margin-left: 1rem;
+    }
+  }
+
+  .fab-button {
+    position: fixed !important;
+    bottom: 5rem; 
+    right: 2rem;
+    width: 3.5rem !important;
+    height: 3.5rem !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    
+    @media (min-width: 800px) {
+      position: absolute !important;
+      bottom: 2rem;
+      right: 1rem;
+    }
+  }
+}

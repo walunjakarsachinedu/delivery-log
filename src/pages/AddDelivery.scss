@@ -1,0 +1,132 @@
+.add-delivery-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
+  padding-bottom: 6rem; // Space for bottom nav
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+
+    .close-btn {
+      color: var(--text-color);
+      cursor: pointer;
+      font-size: 1.25rem;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+  }
+
+  .photo-upload-container {
+    border: 2px dashed var(--surface-border);
+    border-radius: 12px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--surface-ground);
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: var(--surface-hover);
+    }
+
+    .camera-icon-wrapper {
+      background-color: var(--primary-color);
+      color: var(--primary-color-text);
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+      color: var(--text-color);
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--text-color-secondary);
+    }
+  }
+
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-color);
+      }
+
+      .helper-text {
+        font-size: 0.8rem;
+        color: var(--text-color-secondary);
+        margin-top: 0.25rem;
+      }
+
+      // Ensure all prime react inputs take full width
+      .p-inputtext, 
+      .p-dropdown, 
+      .p-calendar, 
+      .p-inputnumber {
+        width: 100%;
+        border-radius: 8px;
+      }
+    }
+  }
+
+  .validation-warning {
+    margin-top: 2rem;
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+
+    i {
+      color: #ef4444;
+      font-size: 1.25rem;
+      margin-top: 0.1rem;
+    }
+
+    div {
+      h4 {
+        margin: 0 0 0.25rem 0;
+        color: #ef4444;
+        font-size: 0.95rem;
+      }
+      p {
+        margin: 0;
+        color: var(--text-color-secondary);
+        font-size: 0.85rem;
+      }
+    }
+  }
+}
