@@ -1,13 +1,7 @@
-import React, { useState } from 'react';
+import { useState, useRef, type ChangeEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { InputText } from 'primereact/inputtext';
-import { InputNumber } from 'primereact/inputnumber';
-import { Dropdown } from 'primereact/dropdown';
-import { Calendar } from 'primereact/calendar';
-import { Button } from 'primereact/button';
 import { useDeliveryStore } from '../store/useDeliveryStore';
 import type { DeliveryStatus } from '../types/delivery';
-import './AddDelivery.scss'; 
 
 const statusOptions = [
   { label: 'Pending', value: 'pending' },
@@ -16,16 +10,14 @@ const statusOptions = [
   { label: 'Returned', value: 'returned' }
 ];
 
-export const AddDelivery: React.FC = () => {
+export const AddDelivery = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  
   const { deliveries, addDelivery, updateDelivery } = useDeliveryStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // find the delivery directly during the initial render
   const existingDelivery = id ? deliveries.find((d) => d.id === id) : null;
 
-  // initialize state directly with the existing data (if it exists)
   const [customerName, setCustomerName] = useState(existingDelivery?.customerName || '');
   const [materialName, setMaterialName] = useState(existingDelivery?.materialName || '');
   const [cost, setCost] = useState<number | null>(existingDelivery?.cost || null);
@@ -33,20 +25,31 @@ export const AddDelivery: React.FC = () => {
   const [courierName, setCourierName] = useState(existingDelivery?.courierName || '');
   const [siteName, setSiteName] = useState(existingDelivery?.siteName || '');
   const [status, setStatus] = useState<DeliveryStatus>(existingDelivery?.status || 'pending');
-  const [dispatchDate, setDispatchDate] = useState<Date | null>(
-    existingDelivery?.dispatchDate ? new Date(existingDelivery.dispatchDate) : null
-  );
-  
+  const [dispatchDate, setDispatchDate] = useState(existingDelivery?.dispatchDate ? existingDelivery.dispatchDate.slice(0, 10) : '');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(existingDelivery?.photoUrl || null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const handleSave = () => {
+  const handleFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleSave = async () => {
     if (!customerName || !trackingNumber || !siteName) {
-      setValidationError('Please fill in all required fields (Customer, Tracking, Site).');
+      setValidationError('Please fill in all required fields: customer, tracking number, and site.');
       return;
     }
 
     const deliveryData = {
-      photoUrl: existingDelivery?.photoUrl || null,
+      photoUrl: previewUrl || null,
       customerName,
       materialName,
       cost: cost || 0,
@@ -54,137 +57,160 @@ export const AddDelivery: React.FC = () => {
       courierName,
       siteName,
       status,
-      dispatchDate: dispatchDate ? dispatchDate.toISOString() : new Date().toISOString(),
+      dispatchDate: dispatchDate ? new Date(dispatchDate).toISOString() : new Date().toISOString(),
     };
 
     if (id) {
-      updateDelivery(id, deliveryData);
+      await updateDelivery(id, deliveryData, selectedFile);
     } else {
-      addDelivery(deliveryData);
+      await addDelivery(deliveryData, selectedFile);
     }
-    
-    navigate('/'); 
+
+    navigate('/');
   };
 
   const isEditMode = Boolean(id);
 
   return (
-    <div className="add-delivery-page">
-      <div className="page-header">
-        <i className="pi pi-times close-btn" onClick={() => navigate('/')} />
-        <h2>{isEditMode ? 'Edit Delivery' : 'Add Delivery'}</h2>
-        <Button label="Save" onClick={handleSave} size="small" />
+    <div style={{ maxWidth: 760, margin: '0 auto', padding: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+        <button type="button" onClick={() => navigate('/')} style={{ padding: '0.6rem 0.9rem', border: '1px solid #ccc', borderRadius: 8, background: '#fff' }}>
+          Back
+        </button>
+        <h2 style={{ margin: 0, fontSize: '1.5rem' }}>{isEditMode ? 'Edit Delivery' : 'Add Delivery'}</h2>
+        <button type="button" onClick={handleSave} style={{ padding: '0.65rem 1rem', border: '1px solid #1d4ed8', borderRadius: 8, background: '#1d4ed8', color: '#fff' }}>
+          Save
+        </button>
       </div>
 
-      <div className="photo-upload-container">
-        <div className="camera-icon-wrapper">
-          <i className="pi pi-camera" />
-        </div>
-        <h3>Upload Package Photo</h3>
-        <p>JPG, PNG up to 10MB</p>
+      <div
+        onClick={triggerFileInput}
+        style={{
+          border: '1px dashed #bbb',
+          borderRadius: 12,
+          padding: '1.25rem',
+          textAlign: 'center',
+          background: '#fff',
+          cursor: 'pointer',
+          marginBottom: '1rem'
+        }}
+      >
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          accept="image/jpeg, image/png"
+          onChange={handleFileSelect}
+        />
+        {previewUrl ? (
+          <img src={previewUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: 220, borderRadius: 12 }} />
+        ) : (
+          <>
+            <div style={{ marginBottom: '0.75rem', color: '#555' }}>Click to upload a package photo</div>
+            <div style={{ color: '#777' }}>JPG or PNG up to 10MB</div>
+          </>
+        )}
       </div>
 
-      <div className="form-container">
-        <div className="form-group">
-          <label htmlFor="customerName">Customer Name</label>
-          <InputText 
-            id="customerName" 
-            value={customerName} 
-            onChange={(e) => setCustomerName(e.target.value)} 
-            placeholder="Johnathan Doe" 
-          />
-          <span className="helper-text">Full legal name for shipping documents</span>
+      {validationError ? (
+        <div style={{ marginBottom: '1rem', padding: '1rem', borderRadius: 10, background: '#fee2e2', border: '1px solid #fca5a5', color: '#991b1b' }}>
+          {validationError}
         </div>
+      ) : null}
 
-        <div className="form-group">
-          <label htmlFor="materialName">Material Name</label>
-          <InputText 
-            id="materialName" 
-            value={materialName} 
-            onChange={(e) => setMaterialName(e.target.value)} 
-            placeholder="Industrial Components" 
+      <div style={{ display: 'grid', gap: '1rem' }}>
+        <label style={{ display: 'grid', gap: '0.5rem' }}>
+          <span>Customer Name</span>
+          <input
+            id="customerName"
+            value={customerName}
+            onChange={(event) => setCustomerName(event.target.value)}
+            placeholder="Johnathan Doe"
+            style={{ width: '100%', padding: '0.75rem', border: '1px solid #ccc', borderRadius: 8 }}
           />
-        </div>
+        </label>
 
-        <div className="form-group">
-          <label htmlFor="cost">Cost ($)</label>
-          <InputNumber 
-            inputId="cost" 
-            value={cost} 
-            onValueChange={(e) => setCost(e.value ?? 0)} 
-            mode="currency" 
-            currency="USD" 
-            locale="en-US" 
-            placeholder="$ 0.00" 
+        <label style={{ display: 'grid', gap: '0.5rem' }}>
+          <span>Material Name</span>
+          <input
+            id="materialName"
+            value={materialName}
+            onChange={(event) => setMaterialName(event.target.value)}
+            placeholder="Industrial Components"
+            style={{ width: '100%', padding: '0.75rem', border: '1px solid #ccc', borderRadius: 8 }}
           />
-        </div>
+        </label>
 
-        <div className="form-group">
-          <label htmlFor="trackingNumber">Tracking Number</label>
-          <InputText 
-            id="trackingNumber" 
-            value={trackingNumber} 
-            onChange={(e) => setTrackingNumber(e.target.value)} 
-            placeholder="TRK-9823-PN" 
+        <label style={{ display: 'grid', gap: '0.5rem' }}>
+          <span>Cost ($)</span>
+          <input
+            id="cost"
+            type="number"
+            value={cost ?? ''}
+            onChange={(event) => setCost(parseFloat(event.target.value) || 0)}
+            placeholder="0.00"
+            style={{ width: '100%', padding: '0.75rem', border: '1px solid #ccc', borderRadius: 8 }}
           />
-        </div>
+        </label>
 
-        <div className="form-group">
-          <label htmlFor="courierName">Courier Name</label>
-          <InputText 
-            id="courierName" 
-            value={courierName} 
-            onChange={(e) => setCourierName(e.target.value)} 
-            placeholder="Global Logistics Inc." 
+        <label style={{ display: 'grid', gap: '0.5rem' }}>
+          <span>Tracking Number</span>
+          <input
+            id="trackingNumber"
+            value={trackingNumber}
+            onChange={(event) => setTrackingNumber(event.target.value)}
+            placeholder="TRK-9823-PN"
+            style={{ width: '100%', padding: '0.75rem', border: '1px solid #ccc', borderRadius: 8 }}
           />
-        </div>
+        </label>
 
-        <div className="form-group">
-          <label htmlFor="siteName">Site Name</label>
-          <span className="p-input-icon-left w-full">
-            <i className="pi pi-map-marker" />
-            <InputText 
-              id="siteName" 
-              value={siteName} 
-              onChange={(e) => setSiteName(e.target.value)} 
-              placeholder="Main Warehouse A" 
-            />
-          </span>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="status">Status</label>
-          <Dropdown 
-            id="status" 
-            value={status} 
-            options={statusOptions} 
-            onChange={(e) => setStatus(e.value)} 
-            placeholder="Select a Status" 
+        <label style={{ display: 'grid', gap: '0.5rem' }}>
+          <span>Courier Name</span>
+          <input
+            id="courierName"
+            value={courierName}
+            onChange={(event) => setCourierName(event.target.value)}
+            placeholder="Global Logistics Inc."
+            style={{ width: '100%', padding: '0.75rem', border: '1px solid #ccc', borderRadius: 8 }}
           />
-        </div>
+        </label>
 
-        <div className="form-group">
-          <label htmlFor="dispatchDate">Dispatch Date</label>
-          <Calendar 
-            inputId="dispatchDate" 
-            value={dispatchDate} 
-            onChange={(e) => setDispatchDate(e.value as Date)} 
-            showIcon 
-            placeholder="mm/dd/yyyy" 
-            dateFormat="mm/dd/yy"
+        <label style={{ display: 'grid', gap: '0.5rem' }}>
+          <span>Site Name</span>
+          <input
+            id="siteName"
+            value={siteName}
+            onChange={(event) => setSiteName(event.target.value)}
+            placeholder="Main Warehouse A"
+            style={{ width: '100%', padding: '0.75rem', border: '1px solid #ccc', borderRadius: 8 }}
           />
-        </div>
+        </label>
+
+        <label style={{ display: 'grid', gap: '0.5rem' }}>
+          <span>Status</span>
+          <select
+            value={status}
+            onChange={(event) => setStatus(event.target.value as DeliveryStatus)}
+            style={{ width: '100%', padding: '0.75rem', border: '1px solid #ccc', borderRadius: 8 }}
+          >
+            {statusOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label style={{ display: 'grid', gap: '0.5rem' }}>
+          <span>Dispatch Date</span>
+          <input
+            type="date"
+            value={dispatchDate}
+            onChange={(event) => setDispatchDate(event.target.value)}
+            style={{ width: '100%', padding: '0.75rem', border: '1px solid #ccc', borderRadius: 8 }}
+          />
+        </label>
       </div>
-
-      {validationError && (
-        <div className="validation-warning">
-          <i className="pi pi-exclamation-triangle" />
-          <div>
-            <h4>Validation Required</h4>
-            <p>{validationError}</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

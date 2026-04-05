@@ -1,14 +1,7 @@
-// src/pages/DeliveryDetails.tsx
-
-import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Tag } from 'primereact/tag';
-import { Button } from 'primereact/button';
 import { useDeliveryStore } from '../store/useDeliveryStore';
-import type { DeliveryStatus } from '../types/delivery';
-import './DeliveryDetails.scss';
 
-export const DeliveryDetails: React.FC = () => {
+export const DeliveryDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { deliveries, deleteDelivery } = useDeliveryStore();
@@ -17,137 +10,82 @@ export const DeliveryDetails: React.FC = () => {
 
   if (!delivery) {
     return (
-      <div className="delivery-details-page flex flex-column align-items-center justify-content-center">
-        <h2>Delivery Not Found</h2>
-        <Button label="Back to List" onClick={() => navigate('/')} />
+      <div style={{ maxWidth: 760, margin: '0 auto', padding: '1rem', textAlign: 'center' }}>
+        <h2 style={{ margin: '0 0 1rem', fontSize: '1.5rem' }}>Delivery Not Found</h2>
+        <button type="button" onClick={() => navigate('/')} style={{ padding: '0.65rem 1rem', borderRadius: 8, border: '1px solid #ccc' }}>
+          Back to List
+        </button>
       </div>
     );
   }
 
   const handleDelete = () => {
-    // In a real app, you might want a confirmation dialog here
     if (window.confirm('Are you sure you want to delete this delivery record?')) {
       deleteDelivery(delivery.id);
       navigate('/');
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-  };
+  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const getSeverity = (status: DeliveryStatus) => {
-    switch (status) {
-      case 'in-transit': return 'info';
-      case 'pending': return 'warning';
-      case 'completed': return 'success';
-      case 'returned': return 'danger';
-      default: return null;
-    }
-  };
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
 
   return (
-    <div className="delivery-details-page">
-      <div className="page-header">
-        <i className="pi pi-arrow-left icon-btn" onClick={() => navigate('/')} />
-        <h2>Delivery Details</h2>
-        <i className="pi pi-pencil icon-btn" onClick={() => navigate(`/edit/${delivery.id}`)} />
+    <div style={{ maxWidth: 760, margin: '0 auto', padding: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+        <button type="button" onClick={() => navigate('/')} style={{ padding: '0.6rem 0.9rem', border: '1px solid #ccc', borderRadius: 8, background: '#fff' }}>
+          Back
+        </button>
+        <h2 style={{ margin: 0, fontSize: '1.5rem' }}>Delivery Details</h2>
+        <button type="button" onClick={() => navigate(`/edit/${delivery.id}`)} style={{ padding: '0.6rem 0.9rem', border: '1px solid #1d4ed8', borderRadius: 8, background: '#1d4ed8', color: '#fff' }}>
+          Edit
+        </button>
       </div>
 
-      <div className="hero-section">
-        {/* Placeholder box if no photo is uploaded */}
-        {delivery.photoUrl ? (
-          <img src={delivery.photoUrl} alt="Package" className="package-img" />
-        ) : (
-          <i className="pi pi-box package-img" style={{ fontSize: '6rem', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
-        )}
-        <div className="courier-badge">
-          <i className="pi pi-verified" />
-          {delivery.courierName || 'STANDARD LOGISTICS'}
-        </div>
-      </div>
-
-      <div className="detail-card">
-        <div className="flex-row">
+      <section style={{ background: '#fff', padding: '1rem', borderRadius: 12, border: '1px solid #ddd', marginBottom: '1rem' }}>
+        <p style={{ margin: 0, color: '#555' }}>Courier: {delivery.courierName || 'Standard Logistics'}</p>
+        <h3 style={{ margin: '0.75rem 0 0', fontSize: '1.25rem' }}>{delivery.trackingNumber}</h3>
+        <div style={{ marginTop: '1rem', display: 'grid', gap: '0.75rem' }}>
           <div>
-            <span className="card-label">Tracking Number</span>
-            <h3 className="tracking-number">{delivery.trackingNumber}</h3>
+            <strong>Customer</strong>
+            <p style={{ margin: '0.25rem 0 0', color: '#555' }}>{delivery.customerName}</p>
           </div>
-          <Tag 
-            value={delivery.status.replace('-', ' ').toUpperCase()} 
-            severity={getSeverity(delivery.status)} 
-            rounded 
-          />
-        </div>
-        
-        <div className="customer-info">
-          <div className="avatar">
-            <i className="pi pi-user" />
+          <div>
+            <strong>Site</strong>
+            <p style={{ margin: '0.25rem 0 0', color: '#555' }}>{delivery.siteName}</p>
           </div>
-          <div className="name-wrapper">
-            <span className="label">Customer Name</span>
-            <p className="name">{delivery.customerName}</p>
+          <div>
+            <strong>Material</strong>
+            <p style={{ margin: '0.25rem 0 0', color: '#555' }}>{delivery.materialName || 'Not specified'}</p>
           </div>
-        </div>
-      </div>
-
-      <div className="detail-card">
-        <i className="pi pi-box material-icon" />
-        <span className="card-label">Material Name</span>
-        <p className="primary-text">{delivery.materialName || 'Not specified'}</p>
-        <p className="secondary-text">Standard grade packaging</p>
-      </div>
-
-      <div className="detail-card">
-        <i className="pi pi-map-marker material-icon" />
-        <span className="card-label">Site Name</span>
-        <p className="primary-text">{delivery.siteName}</p>
-        <div className="map-placeholder">
-          <i className="pi pi-map" />
-        </div>
-      </div>
-
-      <div className="detail-card">
-        <div className="info-list">
-          <div className="info-item">
-            <span className="label">Courier</span>
-            <span className="value">
-              <i className="pi pi-truck" />
-              {delivery.courierName || 'Not specified'}
-            </span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div>
+              <strong>Status</strong>
+              <p style={{ margin: '0.25rem 0 0', color: '#1d4ed8' }}>{delivery.status}</p>
+            </div>
+            <div>
+              <strong>Dispatch Date</strong>
+              <p style={{ margin: '0.25rem 0 0', color: '#555' }}>{formatDate(delivery.dispatchDate)}</p>
+            </div>
           </div>
-          <div className="info-item">
-            <span className="label">Dispatch Date</span>
-            <span className="value">
-              <i className="pi pi-calendar" />
-              {formatDate(delivery.dispatchDate)}
-            </span>
-          </div>
-          <div className="info-item">
-            <span className="label">Delivery Cost</span>
-            <span className="value">
-              <i className="pi pi-money-bill" />
-              {formatCurrency(delivery.cost)}
-            </span>
+          <div>
+            <strong>Cost</strong>
+            <p style={{ margin: '0.25rem 0 0', color: '#555' }}>{formatCurrency(delivery.cost)}</p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <Button 
-        className="delete-btn" 
+      <button
+        type="button"
         onClick={handleDelete}
+        style={{ width: '100%', padding: '0.9rem 1rem', borderRadius: 10, border: '1px solid #dc2626', background: '#dc2626', color: '#fff' }}
       >
-        <i className="pi pi-trash" />
-        DELETE DELIVERY RECORD
-      </Button>
+        Delete Delivery
+      </button>
     </div>
   );
 };
