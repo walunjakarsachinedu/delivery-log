@@ -60,7 +60,15 @@ export default function DateRangePicker({ value, onChange }: Props) {
               <DatePicker.Header />
               <DatePicker.DayTable />
             </DatePicker.View>
-          </DatePicker.Content>
+            <DatePicker.View view="month">
+              <DatePicker.Header />
+              <DatePicker.MonthTable />
+            </DatePicker.View>
+            <DatePicker.View view="year">
+              <DatePicker.Header />
+              <DatePicker.YearTable />
+            </DatePicker.View>
+        </DatePicker.Content>
         </DatePicker.Positioner>
 
         </Theme>

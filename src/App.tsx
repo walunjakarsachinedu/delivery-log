@@ -1,11 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Box, Container } from '@chakra-ui/react';
-import DeliveryList from './pages/DeliveryList';
-import AddDelivery from './pages/AddDelivery';
-import DeliveryDetails from './pages/DeliveryDetails';
-import DateRangePicker from './components/DateRangePicker';
-import { useDeliveryStore } from './store/useDeliveryStore';
 import { useEffect } from 'react';
+import { createBrowserRouter, Outlet, RouterProvider, ScrollRestoration } from 'react-router-dom';
+import DeliveryDetails from './pages/DeliveryDetails';
+import DeliveryList from './pages/DeliveryList';
+import { useDeliveryStore } from './store/useDeliveryStore';
 
 function App() {
   const fetchDeliveries = useDeliveryStore(state => state.fetchDeliveries);
@@ -17,18 +15,21 @@ function App() {
   return (
     <Box minH="100vh">
       <Container maxW="container.xl" py={4}>
-        <Router>
-          <Routes>
-            <Route path="/" element={<DeliveryList />} />
-            <Route path="/add" element={<AddDelivery />} />
-            <Route path="/edit/:id" element={<AddDelivery />} />
-            <Route path="/delivery/:id" element={<DeliveryDetails />} />
-            <Route path="/search" element={<DateRangePicker />} />
-          </Routes>
-        </Router>
+        <RouterProvider router={router} />
       </Container>
     </Box>
   );
 }
+
+const router = createBrowserRouter([
+  {
+    element: <><ScrollRestoration /><Outlet /></>,
+    children: [
+      { path: '/', element: <DeliveryList /> },
+      { path: '/add', element: <DeliveryDetails /> },
+      { path: '/delivery/:id', element: <DeliveryDetails /> },
+    ],
+  },
+]);
 
 export default App;

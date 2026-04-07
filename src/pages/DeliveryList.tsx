@@ -93,17 +93,12 @@ export default function DeliveryList() {
             size="xs"
             colorScheme="green"
             onClick={() => navigate('/add')}
-          // borderRadius="full"
           >
-
-            <HStack gap={0} alignItems="center" >
+            <HStack gap={1} alignItems="center" >
               <Plus />
-              <Box
-              >
-                <Text fontSize="sm" whiteSpace="nowrap">
-                  Add Delivery
-                </Text>
-              </Box>
+              <Text fontSize="sm" whiteSpace="nowrap">
+                Add Delivery
+              </Text>
             </HStack>
           </Button>
         </HStack>
