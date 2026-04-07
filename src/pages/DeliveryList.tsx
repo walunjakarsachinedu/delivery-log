@@ -1,112 +1,247 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Flex,
+  HStack,
+  VStack,
+  Button,
+  Input,
+  Badge,
+  Text,
+  Spinner,
+  Wrap,
+  InputGroup,
+  Container,
+  Image,
+  ButtonGroup,
+} from '@chakra-ui/react';
+import { Filter, IndianRupee, Search, Plus, Package, MapPin, Dot, Calendar, Icon } from "lucide-react";
 import { useDeliveryStore } from '../store/useDeliveryStore';
 import type { DeliveryStatus } from '../types/delivery';
 
-const tabs = [
-  { label: 'All', value: 'all' },
-  { label: 'In-Transit', value: 'in-transit' },
-  { label: 'Pending', value: 'pending' },
-  { label: 'Completed', value: 'completed' }
-];
+const statusColors: Record<DeliveryStatus, string> = {
+  'pending': 'yellow',
+  'in-transit': 'blue',
+  'completed': 'green',
+  'returned': 'red',
+};
 
-export const DeliveryList = () => {
+// const FALLBACK_IMAGE = 'https://via.placeholder.com/80?text=No+Image';
+
+export default function DeliveryList() {
   const navigate = useNavigate();
-  const { deliveries } = useDeliveryStore();
-  const [activeTab, setActiveTab] = useState<DeliveryStatus | 'all'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const deliveries = useDeliveryStore(state => state.deliveries);
+  const isLoading = useDeliveryStore(state => state.isLoading);
+  const filters = useDeliveryStore(state => state.filters);
+  const setFilters = useDeliveryStore(state => state.setFilters);
+  
+  const [searchText, setSearchText] = useState(filters.globalSearch);
+  const [selectedStatuses, setSelectedStatuses] = useState<DeliveryStatus[]>(filters.status);
 
+  // Filter deliveries based on search text and status
   const filteredDeliveries = useMemo(() => {
-    return deliveries.filter((delivery) => {
-      const matchesSearch =
-        delivery.trackingNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        delivery.customerName.toLowerCase().includes(searchQuery.toLowerCase());
+    return deliveries.filter(delivery => {
+      // Filter by search text
+      if (searchText && !delivery.trackingNumber.toLowerCase().includes(searchText.toLowerCase()) &&
+          !delivery.customerName.toLowerCase().includes(searchText.toLowerCase()) &&
+          !delivery.siteName.toLowerCase().includes(searchText.toLowerCase()) &&
+          !delivery.materialName.toLowerCase().includes(searchText.toLowerCase())) {
+        return false;
+      }
 
-      const matchesTab = activeTab === 'all' || delivery.status === activeTab;
-      return matchesSearch && matchesTab;
+      // Filter by status
+      if (selectedStatuses.length > 0 && !selectedStatuses.includes(delivery.status)) {
+        return false;
+      }
+
+      return true;
     });
-  }, [deliveries, searchQuery, activeTab]);
+  }, [deliveries, searchText, selectedStatuses]);
+
+  const handleSearchChange = (text: string) => {
+    setSearchText(text);
+    setFilters({ globalSearch: text });
+  };
+
+  const toggleStatusFilter = (status: DeliveryStatus) => {
+    const updated = selectedStatuses.includes(status)
+      ? selectedStatuses.filter(s => s !== status)
+      : [...selectedStatuses, status];
+    
+    setSelectedStatuses(updated);
+    setFilters({ status: updated });
+  };
 
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: '1rem' }}>
-      <header style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '1.75rem' }}>Delivery Log</h1>
-          <p style={{ margin: '0.25rem 0 0', color: '#555' }}>Track deliveries and open records quickly.</p>
-        </div>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button type="button" onClick={() => navigate('/search')} style={{ padding: '0.65rem 1rem', border: '1px solid #ccc', borderRadius: 6, background: '#fff' }}>
-            Search & Filter
-          </button>
-          <button type="button" onClick={() => navigate('/add')} style={{ padding: '0.65rem 1rem', border: '1px solid #1d4ed8', borderRadius: 6, background: '#1d4ed8', color: '#fff' }}>
-            Add Delivery
-          </button>
-        </div>
-      </header>
-
-      <div style={{ marginBottom: '1rem' }}>
-        <input
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-          placeholder="Search by tracking number or customer"
-          style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #ccc', borderRadius: 8 }}
+    <Container
+      maxW={{ base: 'full', md: '4xl', }}
+      px={{ base: 0, md: 6, lg: 8 }}
+      py={6}
+      centerContent
+    >
+      <VStack align="stretch" w="full">
+      {/* Search Bar with Icons */}
+      <InputGroup 
+        startElement={<Search size={16} />} 
+        endElement={<Filter size={16} onClick={() => navigate('/search')} cursor="pointer"/>}
+      >
+        <Input
+          placeholder="Search deliveries..."
+          value={searchText}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          pl="2.5rem"
+          pr="2.5rem"
         />
-      </div>
+      </InputGroup>
 
-      <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', marginBottom: '1rem' }}>
-        {tabs.map((tab) => (
-          <button
-            key={tab.value}
-            type="button"
-            onClick={() => setActiveTab(tab.value as DeliveryStatus | 'all')}
-            style={{
-              padding: '0.55rem 0.9rem',
-              border: '1px solid #ccc',
-              borderRadius: 999,
-              background: activeTab === tab.value ? '#1d4ed8' : '#fff',
-              color: activeTab === tab.value ? '#fff' : '#111'
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {/* Status Filter Tags */}
+      <Box pt={1}>
+        <Wrap gap={2}>
+          {(['pending', 'in-transit', 'completed', 'returned'] as DeliveryStatus[]).map(
+            (status) => (
+              <Badge
+                key={status}
+                colorScheme={statusColors[status]}
+                cursor="pointer"
+                px={3}
+                py={1}
+                size="sm"
+                borderColor={selectedStatuses.includes(status) ? 'whiteAlpha.600' : "whiteAlpha.200"}
+                borderWidth={1}
+                borderRadius={10}
+                onClick={() => toggleStatusFilter(status)}
+                _hover={{ backgroundColor: "whiteAlpha.100" }}
+                variant="outline"
+              >
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </Badge>
+            )
+          )}
+        </Wrap>
+      </Box>
 
-      {filteredDeliveries.length === 0 ? (
-        <div style={{ padding: '2rem 1rem', border: '1px solid #ddd', borderRadius: 12, background: '#fff' }}>
-          <p style={{ margin: 0, color: '#555' }}>No deliveries found.</p>
-        </div>
+      {/* Deliveries List */}
+      <Box pt={4}></Box>
+      {isLoading ? (
+        <Flex justify="center" align="center" py={10}>
+          <Spinner size="sm" />
+        </Flex>
+      ) : filteredDeliveries.length === 0 ? (
+        <Box textAlign="center" py={10}>
+          <Text fontSize="sm" color="gray.500">
+            No deliveries found
+          </Text>
+        </Box>
       ) : (
-        <div style={{ display: 'grid', gap: '1rem' }}>
+        <VStack gap={3} align="stretch">
           {filteredDeliveries.map((delivery) => (
-            <button
+            <Flex
               key={delivery.id}
-              type="button"
+              gap={3}
+              p={3}
+              borderWidth={1}
+              // borderColor="gray.200"
+              backgroundColor={"whiteAlpha.100"}
+              borderRadius="md"
+              _hover={{ borderColor: "whiteAlpha.400", boxShadow: 'md', cursor: 'pointer' }}
               onClick={() => navigate(`/delivery/${delivery.id}`)}
-              style={{
-                textAlign: 'left',
-                width: '100%',
-                padding: '1rem',
-                border: '1px solid #ddd',
-                borderRadius: 12,
-                background: '#fff',
-                display: 'grid',
-                gridTemplateColumns: '1fr auto',
-                gap: '1rem'
-              }}
+              align="stretch"
             >
-              <div>
-                <strong style={{ display: 'block', marginBottom: '0.25rem' }}>{delivery.trackingNumber}</strong>
-                <div style={{ color: '#555', marginBottom: '0.25rem' }}>{delivery.customerName}</div>
-                <div style={{ color: '#777' }}>{delivery.siteName}</div>
-              </div>
-              <div style={{ textAlign: 'right', alignSelf: 'center', color: '#1d4ed8', fontWeight: 600 }}>
-                {delivery.status}
-              </div>
-            </button>
+              {/* Image on Left */}
+              {
+                <Box width={"80px"} alignItems={"center"} display={"flex"} justifyContent={"center"}>
+                  <Image 
+                    src={delivery.photoUrl || "src/assets/broken-image.png"}
+                    alt={`Delivery ${delivery.trackingNumber}`}
+                    boxSize="40px"
+                    objectFit="contain"
+                    borderRadius="md"
+                    flexShrink={0}
+                    opacity={0.5}
+                  />
+                </Box>
+              }
+
+              {/* Content */}
+              <VStack gap={1} align="start" flex={1} justify="space-between">
+                {/* Tracking Number (Title) */}
+                <Text fontSize="sm" fontWeight="bold" fontFamily="monospace" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {delivery.trackingNumber}
+                </Text>
+
+                {/* Cost & Quantity Row */}
+                <HStack gap={4} fontSize="xs" align={"center"}>
+                  <Text>
+                    <IndianRupee size={12} style={{ display: 'inline', marginRight: 2 }} />{delivery.cost.toFixed(2)}
+                  </Text>
+                  <Text>
+                    <Package size={12} style={{ display: 'inline', marginRight: 4 }} />{delivery.materialName}
+                  </Text>
+                </HStack>
+
+                {/* Dispatch Date */} 
+                <Text fontSize="xs" color="gray.400">
+                  <Calendar size={12} style={{ display: 'inline', marginRight: 4 }} />{new Date(delivery.dispatchDate).toLocaleDateString()}
+                </Text>
+
+                {/* Site Name */}
+                <Text fontSize="xs" color="gray.400">
+                  <MapPin size={12} style={{ display: 'inline', marginRight: 4 }} />{delivery.siteName}
+                </Text>
+
+              </VStack>
+
+              {/* Status Badge on Top Right */}
+              <Flex align="flex-start">
+                <Badge
+                  size="lg"
+                  // backgroundColor={"whiteAlpha.100"}
+                  borderWidth={1}
+                  borderRadius={4}
+                  borderColor={"whiteAlpha.200"}
+                  colorScheme={statusColors[delivery.status]}
+                  fontSize="10px"
+                >
+                  {delivery.status.charAt(0).toUpperCase() + delivery.status.slice(1)}
+                </Badge>
+              </Flex>
+            </Flex>
           ))}
-        </div>
+        </VStack>
       )}
-    </div>
+    </VStack>
+
+      <Button
+        size="lg"
+        colorScheme="green"
+        onClick={() => navigate('/add')}
+        position="fixed"
+        // bottom={16}
+        bottom={16}
+        right={{ base: 8, md: 16 }}
+        borderRadius="full"
+        p={3}
+        data-group
+        transition="all 0.3s ease"
+        className='group'
+      >
+
+        <HStack gap={0} alignItems="center" >
+          <Plus />
+          <Box
+            maxW="0"
+            overflow="hidden"
+            opacity={0}
+            transition="max-width 0.3s ease, opacity 0.3s ease, margin 0.3s ease"
+            _groupHover={{ maxWidth: "120px", opacity: 1, marginLeft: 1 }}
+          >
+            <Text fontSize="sm" whiteSpace="nowrap">
+              Add Delivery
+            </Text>
+          </Box>
+        </HStack>
+      </Button>
+    </Container>
   );
-};
+}
