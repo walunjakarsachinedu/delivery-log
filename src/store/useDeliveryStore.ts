@@ -44,16 +44,17 @@ export const useDeliveryStore = create<DeliveryState>((set) => ({
     set({ isLoading: true });
     try {
       let photoUrl = deliveryData.photoUrl;
+      const deliveryId = new Date().toISOString();
       
       if (imageFile) {
-        photoUrl = await deliveryApi.uploadImage(imageFile);
+        photoUrl = await deliveryApi.uploadImage(imageFile, deliveryId);
       }
 
-      const newDeliveryData = { ...deliveryData, photoUrl };
-      const newId = await deliveryApi.createDelivery(newDeliveryData);
+      const newDeliveryData: Delivery = { ...deliveryData, photoUrl, id: deliveryId };
+      await deliveryApi.createDelivery(newDeliveryData);
       
       set((state) => ({
-        deliveries: [...state.deliveries, { ...newDeliveryData, id: newId }] as Delivery[],
+        deliveries: [...state.deliveries, newDeliveryData] as Delivery[],
         isLoading: false
       }));
     } catch (error) {
@@ -68,7 +69,7 @@ export const useDeliveryStore = create<DeliveryState>((set) => ({
       let photoUrl = updatedData.photoUrl;
 
       if (imageFile) {
-        photoUrl = await deliveryApi.uploadImage(imageFile);
+        photoUrl = await deliveryApi.uploadImage(imageFile, id);
       }
 
       const finalUpdateData = { ...updatedData, photoUrl };

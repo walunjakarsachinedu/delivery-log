@@ -224,7 +224,7 @@ export default function DeliveryList() {
                     borderRadius={4}
                     borderColor={"whiteAlpha.200"}
                     colorScheme={statusColors[delivery.status]}
-                    fontSize="10px"
+                    fontSize={12}
                   >
                     {delivery.status.charAt(0).toUpperCase() + delivery.status.slice(1)}
                   </Badge>

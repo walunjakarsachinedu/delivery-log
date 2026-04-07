@@ -286,7 +286,8 @@ export default function DeliveryDetails() {
             </Select.Root>
           </Field.Root>
 
-          <FileUpload.Root gap="1">
+          {/* TODO: Un-comment this once image upload feature added. */}
+          {/* <FileUpload.Root gap="1">
             <FileUpload.HiddenInput />
             <FileUpload.Label mb={1}>Upload delivery package photo</FileUpload.Label>
             <InputGroup
@@ -312,7 +313,7 @@ export default function DeliveryDetails() {
                 </FileUpload.Trigger>
               </Input>
             </InputGroup>
-          </FileUpload.Root>
+          </FileUpload.Root> */}
 
           <Button
             onClick={handleSubmit}

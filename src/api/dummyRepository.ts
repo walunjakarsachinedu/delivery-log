@@ -1,8 +1,7 @@
 import type { Delivery } from '../types/delivery';
+import type { DeliveryApi } from './deliveryApi';
 
-let nextId = 4;
-
-export const dummyRepository = {
+export const dummyRepository: DeliveryApi = {
   // Simulate image upload - return a fake URL
   uploadImage: async (file: File): Promise<string> => {
     // Simulate async operation
@@ -18,13 +17,10 @@ export const dummyRepository = {
   },
 
   // Create a new delivery
-  createDelivery: async (deliveryData: Omit<Delivery, 'id'>): Promise<string> => {
+  createDelivery: async (deliveryData: Delivery): Promise<void> => {
     // Simulate async operation
     await new Promise(resolve => setTimeout(resolve, 300));
-    const newId = (nextId++).toString();
-    const newDelivery: Delivery = { ...deliveryData, id: newId };
-    deliveries.push(newDelivery);
-    return newId;
+    deliveries.push(deliveryData);
   },
 
   // Update an existing delivery
