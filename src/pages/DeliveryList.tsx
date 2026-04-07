@@ -255,7 +255,7 @@ export default function DeliveryList() {
                 <Dialog.Body>
 
                   {/* status filters */}
-                  <Text mb={2} fontWeight="md">Filter by status</Text>
+                  <Text mb={2} fontWeight="bold">Filter by status</Text>
                   <Wrap gap={2}>
                     {(['pending', 'in-transit', 'completed', 'returned'] as DeliveryStatus[]).map(
                       (status) => (
@@ -281,7 +281,7 @@ export default function DeliveryList() {
 
                   {/* date filter */}
                   <Box mt={8}>
-                    <Text mb={2} fontWeight="md">Filter by date range</Text>
+                    <Text mb={2} fontWeight="bold">Filter by date range</Text>
                     <DateRangePicker />
                   </Box>
 
