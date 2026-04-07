@@ -3,7 +3,7 @@ import { Box, Container } from '@chakra-ui/react';
 import DeliveryList from './pages/DeliveryList';
 import AddDelivery from './pages/AddDelivery';
 import DeliveryDetails from './pages/DeliveryDetails';
-import SearchFilter from './pages/SearchFilter';
+import DateRangePicker from './components/DateRangePicker';
 import { useDeliveryStore } from './store/useDeliveryStore';
 import { useEffect } from 'react';
 
@@ -23,7 +23,7 @@ function App() {
             <Route path="/add" element={<AddDelivery />} />
             <Route path="/edit/:id" element={<AddDelivery />} />
             <Route path="/delivery/:id" element={<DeliveryDetails />} />
-            <Route path="/search" element={<SearchFilter />} />
+            <Route path="/search" element={<DateRangePicker />} />
           </Routes>
         </Router>
       </Container>
