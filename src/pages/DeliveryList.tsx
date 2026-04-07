@@ -180,7 +180,7 @@ export default function DeliveryList() {
                 {
                   <Box width={"80px"} alignItems={"center"} display={"flex"} justifyContent={"center"}>
                     <Image
-                      src={delivery.photoUrl || "src/assets/broken-image.png"}
+                      src={delivery.photoUrl || "/assets/broken-image.png"}
                       alt={`Delivery ${delivery.trackingNumber}`}
                       boxSize="40px"
                       objectFit="contain"
