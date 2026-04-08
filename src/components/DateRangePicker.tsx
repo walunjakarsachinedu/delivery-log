@@ -18,6 +18,7 @@ export default function DateRangePicker({ value, onChange }: Props) {
         onChange?.(fromChakra(details.value))
       }}
       w="fit-content"
+      cursor="pointer"
     >
       <DatePicker.Context>
         {(ctx) => {
@@ -36,6 +37,7 @@ export default function DateRangePicker({ value, onChange }: Props) {
                   justifyContent: "space-between",
                   width: "100%",
                   fontSize: "small",
+                  cursor: "pointer"
                 }}
               >
                 <span>

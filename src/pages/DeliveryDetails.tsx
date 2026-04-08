@@ -2,26 +2,23 @@ import {
   Box,
   Button,
   Container,
+  createListCollection,
+  DatePicker,
+  Field,
   Input,
+  InputGroup,
+  parseDate,
+  Portal,
+  Select,
   Stack,
   Text,
-  Select,
-  createListCollection,
-  Portal,
-  Theme,
-  Field,
-  FileUpload,
-  InputGroup,
-  CloseButton,
-  DatePicker,
-  parseDate,
+  Theme
 } from "@chakra-ui/react";
+import { ArrowLeft, Calendar, IndianRupee, MapPin, Package, QrCode } from "lucide-react";
 import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useDeliveryStore } from "../store/useDeliveryStore";
 import type { Delivery, DeliveryStatus } from "../types/delivery";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, FileUp, QrCode } from "lucide-react";
-import { IndianRupee, MapPin, Package } from "lucide-react";
 
 const defaultForm: Omit<Delivery, "id"> = {
   photoUrl: null,
@@ -102,50 +99,6 @@ export default function DeliveryDetails() {
           </Text>
 
           <Field.Root>
-            <Field.Label>Customer name</Field.Label>
-            <Input
-              value={form.customerName}
-              onChange={(e) =>
-                handleChange("customerName", e.target.value)
-              }
-            />
-          </Field.Root>
-
-          <Field.Root>
-            <Field.Label>Material</Field.Label>
-            <InputGroup endElement={<Package size={16} />}>
-              <Input
-                value={form.materialName}
-                onChange={(e) =>
-                  handleChange("materialName", e.target.value)
-                }
-              />
-            </InputGroup>
-          </Field.Root>
-
-          <Field.Root>
-            <Field.Label>Site</Field.Label>
-            <InputGroup endElement={<MapPin size={16} />}>
-              <Input
-                value={form.siteName}
-                onChange={(e) =>
-                  handleChange("siteName", e.target.value)
-                }
-              />
-            </InputGroup>
-          </Field.Root>
-
-          <Field.Root>
-            <Field.Label>Courier</Field.Label>
-            <Input
-              value={form.courierName}
-              onChange={(e) =>
-                handleChange("courierName", e.target.value)
-              }
-            />
-          </Field.Root>
-
-          <Field.Root>
             <Field.Label>Tracking number</Field.Label>
             <InputGroup endElement={<QrCode size={16} />}>
               <Input
@@ -155,6 +108,49 @@ export default function DeliveryDetails() {
                 }
               />
             </InputGroup>
+          </Field.Root>
+
+          <Field.Root>
+            <Field.Label>Status</Field.Label>
+
+            <Select.Root
+              collection={statusCollection}
+              value={[form.status]}
+              onValueChange={(details) =>
+                handleChange(
+                  "status",
+                  details.value[0] as DeliveryStatus
+                )
+              }
+              size="sm"
+            >
+              <Select.HiddenSelect />
+
+              <Select.Control>
+                <Select.Trigger>
+                  <Select.ValueText placeholder="Select status" />
+                </Select.Trigger>
+
+                <Select.IndicatorGroup>
+                  <Select.Indicator />
+                </Select.IndicatorGroup>
+              </Select.Control>
+
+              <Portal>
+                <Theme appearance="dark">
+                  <Select.Positioner>
+                    <Select.Content>
+                      {statusCollection.items.map((item) => (
+                        <Select.Item item={item} key={item.value}>
+                          {item.label}
+                          <Select.ItemIndicator />
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Theme>
+              </Portal>
+            </Select.Root>
           </Field.Root>
 
           <Field.Root>
@@ -169,6 +165,19 @@ export default function DeliveryDetails() {
               />
             </InputGroup>
           </Field.Root>
+
+          <Field.Root>
+            <Field.Label>Material</Field.Label>
+            <InputGroup endElement={<Package size={16} />}>
+              <Input
+                value={form.materialName}
+                onChange={(e) =>
+                  handleChange("materialName", e.target.value)
+                }
+              />
+            </InputGroup>
+          </Field.Root>
+
           <DatePicker.Root
             value={
               form.dispatchDate
@@ -243,47 +252,37 @@ export default function DeliveryDetails() {
               </Theme>
             </Portal>
           </DatePicker.Root>
+
           <Field.Root>
-            <Field.Label>Status</Field.Label>
+            <Field.Label>Site</Field.Label>
+            <InputGroup endElement={<MapPin size={16} />}>
+              <Input
+                value={form.siteName}
+                onChange={(e) =>
+                  handleChange("siteName", e.target.value)
+                }
+              />
+            </InputGroup>
+          </Field.Root>
 
-            <Select.Root
-              collection={statusCollection}
-              value={[form.status]}
-              onValueChange={(details) =>
-                handleChange(
-                  "status",
-                  details.value[0] as DeliveryStatus
-                )
+          <Field.Root>
+            <Field.Label>Customer name</Field.Label>
+            <Input
+              value={form.customerName}
+              onChange={(e) =>
+                handleChange("customerName", e.target.value)
               }
-              size="sm"
-            >
-              <Select.HiddenSelect />
+            />
+          </Field.Root>
 
-              <Select.Control>
-                <Select.Trigger>
-                  <Select.ValueText placeholder="Select status" />
-                </Select.Trigger>
-
-                <Select.IndicatorGroup>
-                  <Select.Indicator />
-                </Select.IndicatorGroup>
-              </Select.Control>
-
-              <Portal>
-                <Theme appearance="dark">
-                  <Select.Positioner>
-                    <Select.Content>
-                      {statusCollection.items.map((item) => (
-                        <Select.Item item={item} key={item.value}>
-                          {item.label}
-                          <Select.ItemIndicator />
-                        </Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Positioner>
-                </Theme>
-              </Portal>
-            </Select.Root>
+          <Field.Root>
+            <Field.Label>Courier</Field.Label>
+            <Input
+              value={form.courierName}
+              onChange={(e) =>
+                handleChange("courierName", e.target.value)
+              }
+            />
           </Field.Root>
 
           {/* TODO: Un-comment this once image upload feature added. */}
