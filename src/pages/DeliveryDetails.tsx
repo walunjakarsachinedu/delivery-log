@@ -1,3 +1,4 @@
+import { deliveryApi } from "@/api/deliveryApi";
 import {
   Box,
   Button,
@@ -5,22 +6,25 @@ import {
   createListCollection,
   DatePicker,
   Field,
+  Flex,
   Input,
   InputGroup,
   parseDate,
   Portal,
   Select,
+  Spinner,
   Stack,
   Text,
-  Theme
+  Theme,
+  VStack
 } from "@chakra-ui/react";
-import { ArrowLeft, Calendar, IndianRupee, MapPin, Package, QrCode } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Calendar, IndianRupee, MapPin, Package, PackageX, QrCode } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDeliveryStore } from "../store/useDeliveryStore";
 import type { Delivery, DeliveryStatus } from "../types/delivery";
 
-const defaultForm: Omit<Delivery, "id"> = {
+const defaultForm: Omit<Delivery, "_id"> = {
   photoUrl: null,
   customerName: "",
   cost: 0,
@@ -32,7 +36,11 @@ const defaultForm: Omit<Delivery, "id"> = {
   status: "pending",
 };
 
-export default function DeliveryDetails() {
+interface Props {
+  mode: "add" | "edit";
+}
+
+export default function DeliveryDetails({ mode }: Props) {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -43,16 +51,32 @@ export default function DeliveryDetails() {
     isLoading,
   } = useDeliveryStore();
 
-  const [form, setForm] = useState<Omit<Delivery, "id">>(() => {
+  const [resolvedDelivery, setResolvedDelivery] = useState<Delivery | null>(null);
+  const [notFound, setNotFound] = useState(false);
+
+  const [form, setForm] = useState<Omit<Delivery, "_id">>(() => {
     if (id) {
-      const delivery = deliveries.find((d) => d.id === id);
+      const delivery = deliveries.find((d) => d._id === id);
       if (delivery) {
-        const { id: _id, ...rest } = delivery;
+        const { _id, ...rest } = delivery;
         return rest;
       }
     }
     return defaultForm;
   });
+
+  const [isFormInitialized, setIsFormInitialized] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (resolvedDelivery && !isFormInitialized) {
+      const hydrateForm = () => {
+        const { _id, ...rest } = resolvedDelivery;
+        setForm(rest);
+        setIsFormInitialized(true);
+      }
+      hydrateForm();
+    }
+  }, [resolvedDelivery, isFormInitialized]);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
 
@@ -79,6 +103,89 @@ export default function DeliveryDetails() {
       { label: "Returned", value: "returned" },
     ],
   });
+
+  useEffect(() => {
+    if (!id || mode == "add") return;
+
+    let cancelled = false;
+
+    const resolve = async () => {
+      const existing = deliveries.find(d => d._id === id);
+      if (existing) {
+        if (!cancelled) {
+          setResolvedDelivery(existing);
+        }
+        return;
+      }
+
+      if (isLoading) return;
+
+      try {
+        const data = await deliveryApi.fetchDeliveryById(id);
+
+        if (!cancelled) {
+          setResolvedDelivery(data);
+
+          useDeliveryStore.setState(state => ({
+            deliveries: [...state.deliveries, data],
+          }));
+
+        }
+      } catch {
+        if (!cancelled) {
+          setNotFound(true);
+        }
+      }
+    };
+
+    resolve();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, deliveries, isLoading, mode]);
+
+  if (notFound) {
+    return (
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        minH="60vh"
+      >
+        <VStack
+          gap={4}
+          bg="gray.900"
+          p={8}
+          rounded="xl"
+          borderWidth="1px"
+          borderColor="gray.700"
+          textAlign="center"
+        >
+          <PackageX size={40} />
+
+          {/* <Heading size="md">Not found</Heading> */}
+
+          <Text fontSize="sm" color="gray.400">
+            The item you're looking for doesn't exist or was removed.
+          </Text>
+
+          <Button
+            onClick={() => navigate("/")}
+            size="sm"
+          >
+            Back to home
+          </Button>
+        </VStack>
+      </Box>
+    );
+  }
+
+  if (!resolvedDelivery && mode != "add") {
+    return <Flex justify="center" align="center" py={10}>
+      <Text mr={6}>Loading delivery</Text> <Spinner size="sm" />
+    </Flex>
+  }
 
   return (
     <Container maxW={{ base: "full", md: "3xl" }} py={4} px={0}>

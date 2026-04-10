@@ -1,19 +1,23 @@
 import { create } from 'zustand';
 import type { Delivery, FilterOptions } from '../types/delivery';
 import { deliveryApi } from '../api/deliveryApi';
+import { authApi } from '@/api/authApi';
 
 interface DeliveryState {
   deliveries: Delivery[];
   filters: FilterOptions;
   isLoading: boolean;
-  
+
   fetchDeliveries: () => Promise<void>;
-  addDelivery: (delivery: Omit<Delivery, 'id'>, imageFile: File | null) => Promise<void>;
+  addDelivery: (delivery: Omit<Delivery, '_id'>, imageFile: File | null) => Promise<void>;
   updateDelivery: (id: string, updatedData: Partial<Delivery>, imageFile: File | null) => Promise<void>;
   deleteDelivery: (id: string) => Promise<void>;
-  
+
   setFilters: (filters: Partial<FilterOptions>) => void;
   clearFilters: () => void;
+
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const defaultFilters: FilterOptions = {
@@ -45,14 +49,14 @@ export const useDeliveryStore = create<DeliveryState>((set) => ({
     try {
       let photoUrl = deliveryData.photoUrl;
       const deliveryId = new Date().toISOString();
-      
+
       if (imageFile) {
         photoUrl = await deliveryApi.uploadImage(imageFile, deliveryId);
       }
 
-      const newDeliveryData: Delivery = { ...deliveryData, photoUrl, id: deliveryId };
+      const newDeliveryData: Delivery = { ...deliveryData, photoUrl, _id: deliveryId };
       await deliveryApi.createDelivery(newDeliveryData);
-      
+
       set((state) => ({
         deliveries: [...state.deliveries, newDeliveryData] as Delivery[],
         isLoading: false
@@ -77,7 +81,7 @@ export const useDeliveryStore = create<DeliveryState>((set) => ({
 
       set((state) => ({
         deliveries: state.deliveries.map((delivery) =>
-          delivery.id === id ? { ...delivery, ...finalUpdateData } : delivery
+          delivery._id === id ? { ...delivery, ...finalUpdateData } : delivery
         ),
         isLoading: false
       }));
@@ -92,7 +96,7 @@ export const useDeliveryStore = create<DeliveryState>((set) => ({
     try {
       await deliveryApi.deleteDelivery(id);
       set((state) => ({
-        deliveries: state.deliveries.filter((delivery) => delivery.id !== id),
+        deliveries: state.deliveries.filter((delivery) => delivery._id !== id),
         isLoading: false
       }));
     } catch (error) {
@@ -105,4 +109,25 @@ export const useDeliveryStore = create<DeliveryState>((set) => ({
     set((state) => ({ filters: { ...state.filters, ...newFilters } })),
 
   clearFilters: () => set(() => ({ filters: defaultFilters })),
+
+  login: async (email, password) => {
+    await authApi.login({ email, password });
+  },
+
+  logout: async () => {
+    await authApi.logout();
+
+    // clear other stores
+    useDeliveryStore.setState({
+      deliveries: [],
+      filters: {
+        globalSearch: '',
+        fromDate: null,
+        toDate: null,
+        status: [],
+        courier: null,
+      },
+      isLoading: false,
+    });
+  },
 }));

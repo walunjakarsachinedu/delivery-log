@@ -1,15 +1,26 @@
 import type { Delivery } from '@/types/delivery';
-import { dummyRepository } from './dummyRepository';
+import { deliveryRepository } from './deliveryRepository';
 
-export const deliveryApi: DeliveryApi = dummyRepository;
+export const deliveryApi: DeliveryApi = deliveryRepository;
 
 export interface DeliveryApi {
   uploadImage: (file: File, deliveryId: string) => Promise<string>;
-  fetchDeliveries: () => Promise<Delivery[]>;
-  createDelivery: (deliveryData: Delivery) => Promise<void>;
+
+  fetchDeliveries: (params?: {
+    startDate?: string;
+    endDate?: string;
+  }) => Promise<Delivery[]>;
+
+  fetchDeliveryById: (id: string) => Promise<Delivery>;
+
+  createDelivery: (
+    deliveryData: Omit<Delivery, "_id">
+  ) => Promise<Delivery>;
+
   updateDelivery: (
     id: string,
-    deliveryData: Partial<Delivery>
-  ) => Promise<void>;
-  deleteDelivery: (id: string) => Promise<void>;
+    deliveryData: Partial<Omit<Delivery, "_id">>
+  ) => Promise<Delivery>;
+
+  deleteDelivery: (id: string) => Promise<boolean>;
 }

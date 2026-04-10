@@ -4,12 +4,13 @@ import { createBrowserRouter, Outlet, RouterProvider, ScrollRestoration } from '
 import DeliveryDetails from './pages/DeliveryDetails';
 import DeliveryList from './pages/DeliveryList';
 import { useDeliveryStore } from './store/useDeliveryStore';
+import SignInPage from './pages/SignIn';
 
 function App() {
   const fetchDeliveries = useDeliveryStore(state => state.fetchDeliveries);
 
   useEffect(() => {
-    fetchDeliveries();
+    if(localStorage.getItem("token")) fetchDeliveries();
   }, [fetchDeliveries]);
 
   return (
@@ -26,8 +27,9 @@ const router = createBrowserRouter([
     element: <><ScrollRestoration /><Outlet /></>,
     children: [
       { path: '/', element: <DeliveryList /> },
-      { path: '/add', element: <DeliveryDetails /> },
-      { path: '/delivery/:id', element: <DeliveryDetails /> },
+      { path: '/signin', element: <SignInPage /> },
+      { path: '/add', element: <DeliveryDetails mode="add" /> },
+      { path: '/delivery/:id', element: <DeliveryDetails mode="edit" /> },
     ],
   },
 ]);

@@ -19,7 +19,7 @@ import {
   VStack,
   Wrap
 } from '@chakra-ui/react';
-import { Calendar, Filter, IndianRupee, MapPin, Package, Plus, Search } from "lucide-react";
+import { Calendar, Filter, IndianRupee, LogOut, MapPin, Package, Plus, Search } from "lucide-react";
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeliveryStore } from '../store/useDeliveryStore';
@@ -43,6 +43,8 @@ export default function DeliveryList() {
 
   const [searchText, setSearchText] = useState(filters.globalSearch);
   const [selectedStatuses, setSelectedStatuses] = useState<DeliveryStatus[]>(filters.status);
+
+  const logout = useDeliveryStore(state => state.logout);
 
   // Filter deliveries based on search text and status
   const filteredDeliveries = useMemo(() => {
@@ -78,6 +80,11 @@ export default function DeliveryList() {
     setFilters({ status: updated });
   };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate("/signin");
+  };
+
   return (
     <Container
       maxW={{ base: 'full', md: '4xl', }}
@@ -89,18 +96,32 @@ export default function DeliveryList() {
       <VStack align="stretch" w="full">
         <HStack align={"center"} justifyContent={"space-between"} pb={4} >
           <Heading >Delivery log</Heading>
-          <Button
-            size="xs"
-            colorScheme="green"
-            onClick={() => navigate('/add')}
-          >
-            <HStack gap={1} alignItems="center" >
-              <Plus />
+          <HStack>
+            {/* add delivery button */}
+            <Button
+              size="xs"
+              colorScheme="green"
+              onClick={() => navigate('/add')}
+            >
+              <HStack gap={1} alignItems="center" >
+                <Plus />
+                <Text fontSize="sm" whiteSpace="nowrap">
+                  Add Delivery
+                </Text>
+              </HStack>
+            </Button>
+            {/* logout button */}
+            <Button
+              size="xs"
+              variant="surface"
+              colorScheme="green"
+              onClick={() => handleLogout()}
+            >
               <Text fontSize="sm" whiteSpace="nowrap">
-                Add Delivery
+                <LogOut />
               </Text>
-            </HStack>
-          </Button>
+            </Button>
+          </HStack>
         </HStack>
         {/* Search Bar with Icons */}
         <HStack>
@@ -160,7 +181,7 @@ export default function DeliveryList() {
           <VStack gap={3} align="stretch">
             {filteredDeliveries.map((delivery) => (
               <Flex
-                key={delivery.id}
+                key={delivery._id}
                 gap={3}
                 p={3}
                 borderWidth={1}
@@ -168,7 +189,7 @@ export default function DeliveryList() {
                 backgroundColor={"whiteAlpha.100"}
                 borderRadius="md"
                 _hover={{ borderColor: "whiteAlpha.400", boxShadow: 'md', cursor: 'pointer' }}
-                onClick={() => navigate(`/delivery/${delivery.id}`)}
+                onClick={() => navigate(`/delivery/${delivery._id}`)}
                 align="stretch"
               >
                 {/* Image on Left */}
@@ -250,7 +271,12 @@ export default function DeliveryList() {
                 <Dialog.Body>
 
                   {/* status filters */}
-                  <Text mb={2} fontWeight="bold">Filter by status</Text>
+
+                  <Text mb={2}
+                    fontSize="xs"
+                    fontWeight="500"
+                    fontFamily="'DM Mono', monospace"
+                  >Filter by status</Text>
                   <Wrap gap={2}>
                     {(['pending', 'in-transit', 'completed', 'returned'] as DeliveryStatus[]).map(
                       (status) => (
@@ -276,7 +302,11 @@ export default function DeliveryList() {
 
                   {/* date filter */}
                   <Box mt={8}>
-                    <Text mb={2} fontWeight="bold">Filter by date range</Text>
+                    <Text mb={2}
+                      fontSize="xs"
+                      fontWeight="500"
+                      fontFamily="'DM Mono', monospace"
+                    >Filter by date range</Text>
                     <DateRangePicker />
                   </Box>
 
